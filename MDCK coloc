@@ -1,0 +1,171 @@
+run("Color Picker..."); 
+setForegroundColor(0, 0, 0);
+setBackgroundColor(0, 0, 0);
+run("Close");
+run("Set Measurements...", "area mean integrated display scientific redirect=None decimal=2");
+pc = getDirectory("Welcome to Colocalization Macro. Choose your working directory! ");
+f = getNumber("Enter number of fields: ", 100);
+for (m=1; m<= f; m++) {
+	pt = pc+"\\"+m+"\\";
+	count = 1; 
+	listFiles(pt); 
+	function listFiles(pt) {
+		list = getFileList(pt);
+		for (q=0; q<list.length; q++) {
+			if (endsWith(list[q], ".tif"))
+			n=((count++));
+		}
+		roi = pt+"1.zip";	
+		if (File.exists(roi)){
+			open(roi); 
+			nROIs = roiManager("count");
+			j = 0;
+			if (isOpen("ROI Manager")) {
+				selectWindow("ROI Manager");
+				run("Close");
+			}
+			V = 0;
+			while (j< nROIs){
+				for (i=1; i<=n ; i++) {
+					ima = pt+i+".tif";
+					proi = pt+i+".zip";
+					open(proi);
+					open(ima); 
+					name = getTitle;
+					run("Split Channels");
+					close();
+					roiManager("Select", j);
+					run("Measure");
+					close(); 
+					close(); 
+					k = i-1;
+					IntD = getResult("IntDen", k);
+					V = V + IntD;
+					if (isOpen("ROI Manager")) {
+						selectWindow("ROI Manager");
+						run("Close");
+					}
+				}
+				for (i=1; i<=n ; i++) {
+					k = i-1;
+					IntD = getResult("IntDen", k);
+					v = (IntD/V)*100;
+					setResult("Fraction", k, v);
+					updateResults();
+				}
+				selectWindow ("Results");
+				saveAs("Measurements", pt+"fraction_"+j+".csv"); 
+				saveAs("Measurements", pt+"fraction_"+j+".xls");
+				run ("Close");
+				for (i=1; i<=n ; i++) {
+					ima = pt+i+".tif";
+					proi = pt+i+".zip";
+					open(proi); 
+					open(ima); 
+					name = getTitle;
+					roiManager("Select", j);
+					run("Clear Outside"); 
+					run("Split Channels");
+					selectWindow(name+" (red)");
+					close();
+					run("Manders Coefficients", "ch1=["+name+" (green)] ch2=["+name+" (blue)] channel=[Green : Blue] use=None current_slice_only use_threshold exclude_zero-zero_pixels");
+					close(); 
+					close(); 
+					if (isOpen("ROI Manager")) {
+						selectWindow("ROI Manager");
+						run("Close");
+					}
+				}
+				saveAs("Measurements", pt+"colog_result_manders_GB_"+j+".csv"); 
+				saveAs("Measurements", pt+"colog_result_manders_GB_"+j+".xls");
+				selectWindow ("Results");
+				run ("Close");
+				for (i=1; i<=n ; i++) {
+					ima = pt+i+".tif";
+					proi = pt+i+".zip";
+					open(proi); 
+					open(ima); 
+					name = getTitle;
+					roiManager("Select", j);
+					run("Clear Outside"); 
+					run("Split Channels");
+					close();
+					run("Manders Coefficients", "ch1=["+name+" (red)] ch2=["+name+" (green)] channel=[Red : Green] use=None current_slice_only use_threshold exclude_zero-zero_pixels");
+					close(); 
+					close(); 
+					if (isOpen("ROI Manager")) {
+						selectWindow("ROI Manager");
+						run("Close");
+					}
+				}
+				saveAs("Measurements", pt+"colog_result_manders_RG_"+j+".csv"); 
+				saveAs("Measurements", pt+"colog_result_manders_RG_"+j+".xls");
+				selectWindow ("Results");
+				run ("Close");
+				j = j+1;
+			}
+		}
+		else{
+			for (i=1; i<=n ; i++) {
+				ima = pt+i+".tif";
+				proi = pt+i+".roi";
+				open(ima); 
+				run("Split Channels");
+				close();
+				open(proi);
+				run("Measure");
+				close(); 
+				close(); 
+				k = i-1;
+				IntD = getResult("IntDen", k);
+				V = V + IntD;
+			}
+			for (i=1; i<=n ; i++) {
+				k = i-1;
+				IntD = getResult("IntDen", k);
+				v = (IntD/V)*100;
+				setResult("Fraction", k, v);
+				updateResults();
+			}
+			selectWindow ("Results");
+			saveAs("Measurements", pt+"fraction.csv"); 
+			saveAs("Measurements", pt+"fraction.xls");
+			run ("Close");
+			for (i=1; i<=n ; i++) {
+				ima = pt+i+".tif";
+				proi = pt+i+".roi";
+				open(ima);
+				name = getTitle;
+				open(proi); 					
+				run("Clear Outside"); 
+				run("Split Channels");
+				selectWindow(name+" (red)");
+				close();
+				run("Manders Coefficients", "ch1=["+name+" (green)] ch2=["+name+" (blue)] channel=[Green : Blue] use=None current_slice_only use_threshold exclude_zero-zero_pixels");
+				close(); 
+				close(); 
+			}
+			saveAs("Measurements", pt+"colog_result_manders_GB.csv"); 
+			saveAs("Measurements", pt+"colog_result_manders_GB.xls");
+			selectWindow ("Results");
+			run ("Close");
+			for (i=1; i<=n ; i++) {
+				ima = pt+i+".tif";
+				proi = pt+i+".roi";
+				open(ima);
+				name = getTitle;
+				open(proi); 					
+				run("Clear Outside"); 
+				run("Split Channels");
+				close();
+				run("Manders Coefficients", "ch1=["+name+" (red)] ch2=["+name+" (green)] channel=[Red : Green] use=None current_slice_only use_threshold exclude_zero-zero_pixels");
+				close(); 
+				close(); 
+			}
+			saveAs("Measurements", pt+"colog_result_manders_RG.csv"); 
+			saveAs("Measurements", pt+"colog_result_manders_RG.xls");
+			selectWindow ("Results");
+			run ("Close");
+		}
+	}	
+}
